@@ -64,6 +64,11 @@
 #' the default, duplicated models are
 #' removed.
 #'
+#' @param progress Whether a progress
+#' bar will be displayed, implemented
+#' by the `pbapply` package. Default
+#' is `FALSE`.
+#'
 #' @return An object of the class
 #' `partables`, a named list of parameter
 #' tables, each of them to be used by
@@ -99,7 +104,8 @@ get_drop <- function(sem_out,
                      df_change = 1,
                      model_id = NA,
                      keep_correct_df_change = TRUE,
-                     remove_duplicated = TRUE
+                     remove_duplicated = TRUE,
+                     progress = FALSE
                     ) {
     if (missing(sem_out)) stop("sem_out is not supplied.")
     if (!inherits(sem_out, "lavaan")) {
@@ -128,16 +134,32 @@ get_drop <- function(sem_out,
         id_must_not_drop <- syntax_to_id(must_not_drop, ptable = pt)
         id_to_drop <- setdiff(id_to_drop, id_must_not_drop)
       }
-    # Determine the sets of changes
-    sets_to_gen <- lapply(seq_len(df_change),
-                function(x) {
-                          utils::combn(which(id_to_drop), x, simplify = FALSE)
-                        }
-              )
-    sets_to_gen <- unlist(sets_to_gen, recursive = FALSE)
-    df0 <- lavaan::fitMeasures(sem_out, "df")
-    out <- lapply(sets_to_gen, gen_pt_drop, pt = pt, to = model_id,
-                  source_df = df0, sem_out = sem_out)
+    if (any(id_to_drop)) {
+        # Determine the sets of changes
+        sets_to_gen <- lapply(seq_len(df_change),
+                    function(x) {
+                              utils::combn(which(id_to_drop), x, simplify = FALSE)
+                            }
+                  )
+        sets_to_gen <- unlist(sets_to_gen, recursive = FALSE)
+        df0 <- lavaan::fitMeasures(sem_out, "df")
+        if (progress) {
+            cat("\nGenerate", length(sets_to_gen), "more restrictive model(s):\n")
+            op_old <- pbapply::pboptions(type = "timer")
+            out <- pbapply::pblapply(sets_to_gen,
+                                     gen_pt_drop,
+                                     pt = pt,
+                                     to = model_id,
+                                     source_df = df0,
+                                     sem_out = sem_out)
+            pbapply::pboptions(op_old)
+          } else {
+            out <- lapply(sets_to_gen, gen_pt_drop, pt = pt, to = model_id,
+                          source_df = df0, sem_out = sem_out)
+          }
+      } else {
+        out <- list()
+      }
 
     # Keep tables with expected df only?
     if (keep_correct_df_change) {
@@ -155,7 +177,7 @@ get_drop <- function(sem_out,
     attr(out, "sem_out") <- sem_out
     class(out) <- c("partables", class(out))
     if (remove_duplicated) {
-        out <- unique_models(out)
+        out <- unique_models(out, progress = progress)
       }
     out
   }

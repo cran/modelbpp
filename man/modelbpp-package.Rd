@@ -6,6 +6,8 @@
 \alias{modelbpp-package}
 \title{modelbpp: Model BIC Posterior Probability}
 \description{
+\if{html}{\figure{logo.png}{options: style='float: right' alt='logo' width='120'}}
+
 Fits the neighboring models of a fitted structural equation model and assesses the model uncertainty of the fitted model based on BIC posterior probabilities, using the method presented in Wu, Cheung, and Leung (2020) \doi{10.1080/00273171.2019.1574546}.
 }
 \seealso{
@@ -23,6 +25,11 @@ Authors:
 \itemize{
   \item Huiping Wu
   \item Shing On Leung (\href{https://orcid.org/0000-0002-0962-339X}{ORCID})
+}
+
+Other contributors:
+\itemize{
+  \item Ivan Jacob Agaloos Pesigan \email{r.jeksterslab@gmail.com} (\href{https://orcid.org/0000-0003-4818-8420}{ORCID}) [contributor]
 }
 
 }
