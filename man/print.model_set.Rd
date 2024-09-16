@@ -12,9 +12,10 @@
   max_models = 20,
   bpp_target = NULL,
   target_name = "original",
-  more_fit_measures = NULL,
+  more_fit_measures = c("cfi", "rmsea"),
   fit_measures_digits = 3,
   short_names = FALSE,
+  cumulative_bpp = FALSE,
   ...
 )
 }
@@ -56,9 +57,10 @@ Used if \code{bpp_target} is not \code{NULL}.}
 
 \item{more_fit_measures}{Character
 vector. To be passed to
-\code{\link[lavaan:fitMeasures]{lavaan::fitMeasures()}}. Default is
-\code{NULL}. If not \code{NULL}, these are
-the additional measures to be printed.}
+\code{\link[lavaan:fitMeasures]{lavaan::fitMeasures()}}. Default
+is \code{c("cfi", "rmsea")}. Set it to
+\code{NULL} to disable printing additional
+fit measures.}
 
 \item{fit_measures_digits}{The number of
 decimal places to be displayed
@@ -73,6 +75,11 @@ Default is \code{FALSE}. Short names
 can be used when interpreting
 the graph from \code{model_graph()}
 if short names are used in the graph.}
+
+\item{cumulative_bpp}{If \code{TRUE} and
+the models are sorted by BPPs,
+cumulative BPPs will be printed.
+Default is \code{FALSE}.}
 
 \item{...}{Optional arguments.
 Ignored.}

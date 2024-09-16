@@ -99,6 +99,36 @@
 #' error covariances of indicators.
 #' Default is `TRUE`.
 #'
+#' @param exclude_feedback Exclude
+#' paths that will result in a feedback
+#' loop. For example, if there is
+#' path from `x` through `m` to `y`,
+#' then the path `x ~ y` will create
+#' a feedback loop.  Default has been
+#' changed to
+#' `TRUE` since Version 0.1.3.5 because
+#' feedback loops are usually
+#' not included except when theoretically
+#' justified. To reproduce results
+#' based on previous version, set this
+#' argument to `FALSE`.
+#'
+#' @param exclude_xy_cov Exclude
+#' covariance between two variables,
+#' in which one has a path to another.
+#' For example, if there is
+#' path from `x` through `m` to `y`,
+#' then the covariance `x ~~ y`,
+#' which denotes the covariance between
+#' `x` and the error term of `y`, will
+#' be excluded if this argument is
+#' `TRUE`. Default has been changed to
+#' `TRUE` since Version 0.1.3.5 because
+#' these covariances rarely are
+#' interpretable. To reproduce results
+#' based on previous version, set this
+#' argument to `FALSE`.
+#'
 #' @param must_drop A character vector
 #' of parameters, named in
 #' `lavaan::lavaan()` style (e.g.,
@@ -193,6 +223,15 @@
 #' Can be set to `FALSE` for experimenting
 #' the functions on models not officially
 #' supported.
+#'
+#' @param drop_equivalent_models If
+#' `TRUE`, the default, equivalent
+#' models will be dropped in the final
+#' output. This check can only be
+#' conducted when no models are fitted
+#' in [lavaan::lavaan()] with
+#' `fixed.x = TRUE` (which is the
+#' default of [lavaan::sem()]).
 #'
 #' @return The function [model_set()]
 #' returns an object of the class
@@ -292,6 +331,8 @@ model_set <- function(sem_out,
                       must_not_drop = NULL,
                       remove_constraints = TRUE,
                       exclude_error_cov = TRUE,
+                      exclude_feedback = TRUE,
+                      exclude_xy_cov = TRUE,
                       df_change_add = 1,
                       df_change_drop = 1,
                       remove_duplicated = TRUE,
@@ -305,7 +346,8 @@ model_set <- function(sem_out,
                       make_cluster_args = list(),
                       progress = TRUE,
                       verbose = TRUE,
-                      skip_check_sem_out = FALSE) {
+                      skip_check_sem_out = FALSE,
+                      drop_equivalent_models = TRUE) {
   # if (missing(sem_out)) stop("sem_out is not supplied.")
   user_fits <- FALSE
   if (!missing(sem_out)) {
@@ -356,6 +398,8 @@ model_set <- function(sem_out,
                                 must_not_add = must_not_add,
                                 remove_constraints = remove_constraints,
                                 exclude_error_cov = exclude_error_cov,
+                                exclude_feedback = exclude_feedback,
+                                exclude_xy_cov = exclude_xy_cov,
                                 df_change = df_change_add,
                                 remove_duplicated = FALSE,
                                 progress = progress)
@@ -417,7 +461,54 @@ model_set <- function(sem_out,
           class(out) <- c("sem_outs", class(out))
         }
     }
+  # Check equivalent clusters
+  any_fixedx <- any(sapply(out$fit, lavaan::lavInspect, what = "fixed.x"),
+                    na.rm = TRUE)
+  # if (drop_equivalent_models && isTRUE(any_fixedx)) {
+  #     warning("Cannot check for equivalent models if fixed.x = TRUE.")
+  #   }
+  if (!is.null(out$fit) && drop_equivalent_models && isFALSE(any_fixedx)) {
+      mod_eq <- tryCatch(equivalent_clusters(out$fit,
+                                             progress = progress,
+                                             name_cluster = TRUE),
+                         error = function(e) e)
+      if (inherits(mod_eq, "error")) {
+          if (grepl("fixed.x = TRUE", mod_eq$message, fixed = TRUE)) {
+              warning("Cannot check for equivalent models if fixed.x = TRUE.")
+            }
+          mod_eq <- NULL
+        }
+      if (!is.null(mod_eq)) {
+          to_drop <- numeric(0)
+          m_names <- names(out$fit)
+          for (xx in mod_eq) {
+              i <- xx[-1]
+              to_drop <- c(to_drop, match(i, m_names))
+            }
+          out$fit <- out$fit[-to_drop]
+          if (!is.null(out$change)) {
+              out$change <- out$change[-to_drop]
+            }
+          out$post_check <- out$post_check[-to_drop]
+          out$converged <- out$converged[-to_drop]
+          if (!is.null(out$model_df)) {
+              out$model_df <- out$model_df[-to_drop]
+            }
+          mod_to_fit_equivalent <- mod_to_fit[to_drop]
+          mod_to_fit <- mod_to_fit[-to_drop]
+        } else {
+          mod_to_fit_equivalent <- NULL
+          mod_eq <- NULL
+        }
+    } else {
+      mod_to_fit_equivalent <- NULL
+      mod_eq <- NULL
+    }
   out$models <- mod_to_fit
+  out$models_equivalent <- mod_to_fit_equivalent
+  out$equivalent_clusters <- mod_eq
+  out$drop_equivalent_models <- drop_equivalent_models
+  out$fixed_x <- any_fixedx
   if (compute_bpp && !is.null(out$fit)) {
       bic_list <- sapply(out$fit,
             function(x) {

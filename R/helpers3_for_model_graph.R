@@ -84,7 +84,8 @@ models_network <- function(object) {
 
 models_network2 <- function(object,
                             one_df_only = TRUE,
-                            progress = FALSE) {
+                            progress = FALSE,
+                            mark_equivalent = FALSE) {
     if (inherits(object, "model_set")) {
         models <- object$fit
       } else {
@@ -150,12 +151,16 @@ models_network2 <- function(object,
                                y = models[[j]],
                                x_df = df_i,
                                y_df = df_j)
+            if (is.na(net_chk)) next
             if (net_chk == "x_within_y") {
                 net_out[i, j] <- df_i - df_j
               } else if (net_chk == "y_within_x") {
                 net_out[j, i] <- df_j - df_i
               }
             # TODO: Decide what to do with equivalent models
+            if (net_chk == "equivalent" && mark_equivalent) {
+                net_out[i, j] <- net_out[j, i] <- NA
+              }
           }
       }
     if (progress) {
@@ -176,7 +181,7 @@ models_network2 <- function(object,
 x_net_y <- function(x,
                     y,
                     x_df = NULL,
-                    y_df= NULL,
+                    y_df = NULL,
                     crit = 1e-4,
                     check_x_y = TRUE) {
     # Based on semTools:::x.within.y().
@@ -189,6 +194,11 @@ x_net_y <- function(x,
       }
     if (is.null(y_df)) {
         y_df <- lavaan::fitMeasures(y, fit.measures = "df")
+      }
+    if ((x_df == y_df) &&
+        (abs(lavaan::fitMeasures(x, fit.measures = "chisq") -
+             lavaan::fitMeasures(y, fit.measures = "chisq")) < crit)) {
+        return("equivalent")
       }
     # Reorder the models f1 >= f2 on df
     if (x_df < y_df) {
@@ -265,16 +275,19 @@ x_net_y <- function(x,
                            sample.nobs = f1_nobs,
                            sample.th = implied_threshold,
                            WLS.V = f1_WLS.V,
-                           NACOV = f1_NACOV)
+                           NACOV = f1_NACOV,
+                           warn = FALSE)
     if (!lavaan::lavInspect(f2_1, "converged")) {
+        # If estimation failed to converged,
+        # then do not assume a nested relation.
+        # Should not be a major problem because this only
+        # affect the graph.
         return(NA)
       }
     f2_1_chisq <- unname(lavaan::fitMeasures(f2_1, fit.measures = "chisq"))
     chisq_eq <- f2_1_chisq < crit
     if (chisq_eq) {
-        if (x_df == y_df) {
-            out <- "equivalent"
-          }
+        # Equivalence should not be determined this way
       } else {
         out <- "not_nested"
       }
@@ -550,4 +563,33 @@ v_labels <- function(x) {
     out0 <- gsub(": ", ":\n", x, fixed = TRUE)
     out0 <- gsub(";", "\n", out0, fixed = TRUE)
     out0
+  }
+
+#' @title Identify Clusters of Equivalent Models
+#'
+#' @noRd
+
+equivalent_clusters <- function(fits,
+                                name_cluster = TRUE,
+                                progress = FALSE) {
+    net_eq <- models_network2(fits,
+                              mark_equivalent = TRUE,
+                              progress = progress,
+                              one_df_only = TRUE)
+    if (!any(is.na(net_eq))) {
+        return(NULL)
+      }
+    net_eq[!is.na(net_eq)] <- 0
+    net_eq[is.na(net_eq)] <- 1
+    p_eq <- igraph::graph_from_adjacency_matrix(net_eq,
+                                                mode = "undirected")
+    p_eq_group <- igraph::max_cliques(p_eq)
+    i <- sapply(p_eq_group, length)
+    p_eq_group <- p_eq_group[i > 1]
+    p_eq_group_names <- lapply(p_eq_group, function(x) x$name)
+    if (name_cluster) {
+        tmp <- sapply(p_eq_group_names, function(x) x[1])
+        names(p_eq_group_names) <- tmp
+      }
+    p_eq_group_names
   }

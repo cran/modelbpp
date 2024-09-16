@@ -48,9 +48,10 @@
 #'
 #' @param more_fit_measures Character
 #' vector. To be passed to
-#' [lavaan::fitMeasures()]. Default is
-#' `NULL`. If not `NULL`, these are
-#' the additional measures to be printed.
+#' [lavaan::fitMeasures()]. Default
+#' is `c("cfi", "rmsea")`. Set it to
+#' `NULL` to disable printing additional
+#' fit measures.
 #'
 #' @param fit_measures_digits The number of
 #' decimal places to be displayed
@@ -65,6 +66,11 @@
 #' can be used when interpreting
 #' the graph from `model_graph()`
 #' if short names are used in the graph.
+#'
+#' @param cumulative_bpp If `TRUE` and
+#' the models are sorted by BPPs,
+#' cumulative BPPs will be printed.
+#' Default is `FALSE`.
 #'
 #' @param ...  Optional arguments.
 #' Ignored.
@@ -101,9 +107,10 @@ print.model_set <- function(x,
                             max_models = 20,
                             bpp_target = NULL,
                             target_name = "original",
-                            more_fit_measures = NULL,
+                            more_fit_measures = c("cfi", "rmsea"),
                             fit_measures_digits = 3,
                             short_names = FALSE,
+                            cumulative_bpp = FALSE,
                             ...) {
     fit_n <- length(x$models)
     fit_names <- names(x$models)
@@ -157,25 +164,32 @@ print.model_set <- function(x,
     out_table$Prior <- prior_tmp
     out_table$BIC <- bic_tmp
     out_table$BPP <- postprob_tmp
-
+    if (!is.null(more_fit_measures)) {
+        fit_fm <- sapply(x$fit,
+                         function(xx) {
+                            out <- tryCatch(lavaan::fitMeasures(xx,
+                                            fit.measures = more_fit_measures,
+                                            output = "vector"),
+                                            error = function(e) e)
+                            if (inherits(out, "error")) {
+                                out <- rep(NA, length(more_fit_measures))
+                              }
+                            out
+                          })
+        fit_fm <- t(fit_fm)
+        out_table <- cbind(out_table, fit_fm)
+      }
     if (sort_models && models_fitted && all_converged) {
         i <- order(out_table$BPP,
                    decreasing = TRUE)
         out_table <- out_table[i, ]
-        tmp <- round(cumsum(out_table$BPP), bpp_digits)
-        tmp <- formatC(tmp,
-                       digits = bpp_digits,
-                       format = "f")
-        out_table["Cumulative"] <- tmp
-      }
-    if (!is.null(more_fit_measures)) {
-        # TODO: Handle nonconvergence
-        fit_fm <- sapply(x$fit,
-                         lavaan::fitMeasures,
-                         fit.measures = more_fit_measures,
-                         output = "vector")
-        fit_fm <- t(fit_fm)
-        out_table <- cbind(out_table, fit_fm)
+        if (cumulative_bpp) {
+            tmp <- round(cumsum(out_table$BPP), bpp_digits)
+            tmp <- formatC(tmp,
+                          digits = bpp_digits,
+                          format = "f")
+            out_table["Cumulative"] <- tmp
+          }
       }
     out_table_print <- out_table
     out_table_print$Prior <- round(out_table_print$Prior,
@@ -245,9 +259,9 @@ print.model_set <- function(x,
                       formatC(x$bpp[target_name], digits = bpp_digits, format = "f")))
             colnames(tmp) <- paste0("Target Model: ",
                                     target_name)
-            rownames(tmp) <- c("Desired minimum BIC posterior probability:",
+            rownames(tmp) <- c("Desired minimum BPP:",
                                "Required minimum prior probability:",
-                               "Current BIC posterior probability:")
+                               "Current BPP:")
             print(tmp)
           }
       } else {
@@ -290,35 +304,57 @@ print.model_set <- function(x,
         print(x_tmp2)
       }
 
+    if (!is.null(x$equivalent_clusters)) {
+        tmp <- as.vector(sapply(x$equivalent_clusters, paste, collapse = ", "))
+        tmp <- data.frame(Cluster = tmp)
+        tmp2 <- names(x$models_equivalent)
+        cat("\nModels that are equivalent:\n")
+        print(tmp, right = FALSE)
+        cat("\nEquivalent model(s) excluded from the analysis:\n")
+        catwrap(paste(tmp2, collapse = ", "))
+      }
 
     cat("\nNote:\n")
     cat("- BIC: Bayesian Information Criterion.\n")
     cat("- BPP: BIC posterior probability.\n")
     cat("- model_df: Model degrees of freedom.\n")
     cat("- df_diff: Difference in df compared to the original/target model.\n")
-    if (sort_models && ("Cumulative" %in% colnames(x_tmp))) {
-        cat("- Cumulative: Cumulative BIC posterior probability.\n")
+    if (sort_models) {
+        if (("Cumulative" %in% colnames(x_tmp))) {
+            cat("- Cumulative: Cumulative BIC posterior probability.\n")
+          } else {
+            cat("- To show cumulative BPPs, call print() with 'cumulative_bpp = TRUE'.\n")
+          }
       }
     if (gt_max_models) {
-        x <- paste(fit_n,
+        tmp <- paste(fit_n,
                    "models were fitted but",
                    max_models,
                    "were printed. Call print() and",
                    "set 'max_models' to a larger number",
                    "to print more models, or set it to",
                    "NA to print all models.")
-        catwrap(x, initial = "- ", exdent = 2)
+        catwrap(tmp, initial = "- ", exdent = 2)
       }
     if (models_fitted &&
         (k_converged != fit_n) &&
         any(is.na(postprob_tmp))) {
-        x <- "BPP and/or prior not computed because one or more models not converged."
-        catwrap(x, initial = "- ", exdent = 2)
+        tmp <- "BPP and/or prior not computed because one or more models not converged."
+        catwrap(tmp, initial = "- ", exdent = 2)
       }
     if (models_fitted &&
         (k_post_check != fit_n)) {
-        x <- "Interpret with caution. One or more models failed lavaan's post.check."
-        catwrap(x, initial = "- ", exdent = 2)
+        tmp <- "Interpret with caution. One or more models failed lavaan's post.check."
+        catwrap(tmp, initial = "- ", exdent = 2)
       }
+    if (x$drop_equivalent_models && x$fixed_x) {
+        tmp <- "At least one model has fixed.x = TRUE. The models are not checked for equivalence."
+        catwrap(tmp, initial = "- ", exdent = 2)
+      }
+    tmp <- paste0("Since Version 0.1.3.5, the default values of ",
+                  "exclude_feedback and exclude_xy_cov changed to TRUE. ",
+                  "Set them to FALSE to reproduce results from previous versions.")
+    catwrap(tmp, initial = "- ", exdent = 2)
+
     invisible(x)
   }

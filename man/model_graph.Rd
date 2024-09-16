@@ -26,6 +26,7 @@ model_graph(
   arrow_max_width = 2,
   progress = TRUE,
   short_names = FALSE,
+  min_bpp_labelled = NULL,
   ...
 )
 }
@@ -147,6 +148,13 @@ Please print the object with
 \code{short_names = TRUE} to find the
 corresponding full model names.}
 
+\item{min_bpp_labelled}{If not \code{NULL},
+this is the minimum BPP for a model
+to be labelled. Models with BPP less
+than this value will not be labelled.
+Useful when the number of models
+is large.}
+
 \item{...}{Optional arguments. Not
 used for now.}
 }
@@ -255,7 +263,8 @@ relations. Models connected by an
 arrow has a nested relation based on
 the NET method by Bentler and Satorra
 (2010). An internal function inspired
-by \code{\link[semTools:net]{semTools::net()}} is used to
+by the \code{net} function from the
+\code{semTools} package is used to
 implement the NET method.
 }
 
@@ -302,7 +311,8 @@ Structural Equation Models.
 \author{
 Shu Fai Cheung \url{https://orcid.org/0000-0002-9871-9448}
 The internal function for nesting
-inspired by \code{\link[semTools:net]{semTools::net()}},
+inspired by the \code{net} function
+from the \code{semTools} package,
 which was developed by
 Terrence D. Jorgensen.
 }

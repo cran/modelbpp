@@ -95,7 +95,8 @@
 #' arrow has a nested relation based on
 #' the NET method by Bentler and Satorra
 #' (2010). An internal function inspired
-#' by [semTools::net()] is used to
+#' by the `net` function from the
+#' `semTools` package is used to
 #' implement the NET method.
 #'
 #' ## The Size of a Node
@@ -234,12 +235,20 @@
 #' `short_names = TRUE` to find the
 #' corresponding full model names.
 #'
+#' @param min_bpp_labelled If not `NULL`,
+#' this is the minimum BPP for a model
+#' to be labelled. Models with BPP less
+#' than this value will not be labelled.
+#' Useful when the number of models
+#' is large.
+#'
 #' @param ... Optional arguments. Not
 #' used for now.
 #'
 #' @author Shu Fai Cheung <https://orcid.org/0000-0002-9871-9448>
 #' The internal function for nesting
-#' inspired by [semTools::net()],
+#' inspired by the `net` function
+#' from the `semTools` package,
 #' which was developed by
 #' Terrence D. Jorgensen.
 #'
@@ -295,12 +304,14 @@ model_graph <- function(object,
                         arrow_max_width = 2,
                         progress = TRUE,
                         short_names = FALSE,
+                        min_bpp_labelled = NULL,
                         ...) {
     if (!all(object$converged)) {
         stop("Not all models converged.")
       }
     user_models <- sapply(added(object$models), is.null) &
                    sapply(dropped(object$models), is.null)
+    # TODO: Should always use models_network2()?
     if (sum(user_models, na.rm = TRUE) != 1) {
         # warning("One or more user models are present. ",
         #     "User model(s) will be plotted separately.")
@@ -369,10 +380,19 @@ model_graph <- function(object,
     if (short_names) {
         if (is.character(object$short_names)) {
             tmp1 <- object$short_names
-            tmp2 <- igraph::V(out)$label
+            tmp2 <- igraph::V(out)$name
             igraph::V(out)$full_name <- tmp2
             igraph::V(out)$label <- tmp1[tmp2]
           }
+      }
+    if (is.numeric(min_bpp_labelled)) {
+        tmp2 <- igraph::V(out)$label
+        tmp3 <- igraph::V(out)$name
+        tmp1 <- (object$bpp < min_bpp_labelled)
+        tmp1 <- tmp1[tmp3]
+        tmp4 <- tmp2
+        tmp4[tmp1] <- ""
+        igraph::V(out)$label <- tmp4
       }
     class(out) <- c("model_graph", class(out))
     out
@@ -389,7 +409,8 @@ model_graph <- function(object,
 #' [model_graph()].
 #'
 #' For now, it simply passes the object
-#' to [plot.igraph()]. This function
+#' to `plot`-method of an `igraph` object.
+#' This function
 #' is created for possible customization
 #' of the plot in the future.
 #'
@@ -400,7 +421,8 @@ model_graph <- function(object,
 #' function.)
 #'
 #' @param ... Additional arguments,
-#' passed to [plot.igraph()].
+#' passed to the `plot`-method of
+#' an `igraph` object.
 #'
 #' @seealso [model_graph()]
 #'

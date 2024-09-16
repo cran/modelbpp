@@ -17,6 +17,8 @@ model_set(
   must_not_drop = NULL,
   remove_constraints = TRUE,
   exclude_error_cov = TRUE,
+  exclude_feedback = TRUE,
+  exclude_xy_cov = TRUE,
   df_change_add = 1,
   df_change_drop = 1,
   remove_duplicated = TRUE,
@@ -28,7 +30,8 @@ model_set(
   make_cluster_args = list(),
   progress = TRUE,
   verbose = TRUE,
-  skip_check_sem_out = FALSE
+  skip_check_sem_out = FALSE,
+  drop_equivalent_models = TRUE
 )
 
 gen_models(
@@ -120,6 +123,36 @@ removed. Default is ``TRUE`.}
 error covariances of indicators.
 Default is \code{TRUE}.}
 
+\item{exclude_feedback}{Exclude
+paths that will result in a feedback
+loop. For example, if there is
+path from \code{x} through \code{m} to \code{y},
+then the path \code{x ~ y} will create
+a feedback loop.  Default has been
+changed to
+\code{TRUE} since Version 0.1.3.5 because
+feedback loops are usually
+not included except when theoretically
+justified. To reproduce results
+based on previous version, set this
+argument to \code{FALSE}.}
+
+\item{exclude_xy_cov}{Exclude
+covariance between two variables,
+in which one has a path to another.
+For example, if there is
+path from \code{x} through \code{m} to \code{y},
+then the covariance \code{x ~~ y},
+which denotes the covariance between
+\code{x} and the error term of \code{y}, will
+be excluded if this argument is
+\code{TRUE}. Default has been changed to
+\code{TRUE} since Version 0.1.3.5 because
+these covariances rarely are
+interpretable. To reproduce results
+based on previous version, set this
+argument to \code{FALSE}.}
+
 \item{df_change_add}{How many degrees
 of freedom (\emph{df}) away in the list.
 All models with \emph{df} change less than
@@ -196,6 +229,15 @@ not, an error will be raised.
 Can be set to \code{FALSE} for experimenting
 the functions on models not officially
 supported.}
+
+\item{drop_equivalent_models}{If
+\code{TRUE}, the default, equivalent
+models will be dropped in the final
+output. This check can only be
+conducted when no models are fitted
+in \code{\link[lavaan:lavaan]{lavaan::lavaan()}} with
+\code{fixed.x = TRUE} (which is the
+default of \code{\link[lavaan:sem]{lavaan::sem()}}).}
 
 \item{output}{If \code{"model_set"},
 then the output is a \code{model_set}-class

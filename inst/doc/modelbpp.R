@@ -70,15 +70,15 @@ out1_df2
 #  plot(graph1_df2)
 
 ## ----results = FALSE----------------------------------------------------------
-out1_no_cov <- model_set(fit1,
-                         must_not_add = "m1~~y")
+out1_no_m1_x <- model_set(fit1,
+                          must_not_drop = "m1~x")
 
 ## -----------------------------------------------------------------------------
-out1_no_cov
+out1_no_m1_x
 
-## ----graph1_no_cov, ig.height = 8, fig.width = 8, eval = FALSE----------------
-#  graph1_no_cov <- model_graph(out1_no_cov)
-#  plot(graph1_no_cov)
+## ----out1_no_m1_x, ig.height = 8, fig.width = 8, eval = FALSE-----------------
+#  out1_no_m1_x <- model_graph(out1_no_m1_x)
+#  plot(out1_no_m1_x)
 
 ## ----results = FALSE----------------------------------------------------------
 out1_new_prior <- model_set(model_set_out = out1,
