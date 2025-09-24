@@ -1,3 +1,23 @@
+# modelbpp 0.1.6
+
+## New Features
+
+- Added `model_set_combined()` for
+  computing BPPs for models from two or
+  more calls to `model_set()`.
+  (0.1.5.3, 0.1.5.4)
+
+## Miscellaneous
+
+- The default of
+  `more_fit_measures` of the print
+  method of `model_set`-class object
+  was changed to `c("cfi", "rmsea", "srmr)`.
+  (0.1.5.1)
+
+- Changed the vignettes to precomputed
+  Rmarkdown files. (0.1.5.2)
+
 # modelbpp 0.1.5
 
 ## New Features
