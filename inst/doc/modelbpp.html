@@ -12,7 +12,7 @@
 
 <meta name="author" content="Shu Fai Cheung" />
 
-<meta name="date" content="2026-03-01" />
+<meta name="date" content="2026-05-12" />
 
 <title>Get Started</title>
 
@@ -363,7 +363,7 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 
 <h1 class="title toc-ignore">Get Started</h1>
 <h4 class="author">Shu Fai Cheung</h4>
-<h4 class="date">2026-03-01</h4>
+<h4 class="date">2026-05-12</h4>
 
 
 
@@ -378,6 +378,14 @@ degree of freedom than the original fitted model.</p></li>
 <li><p>Compute the BIC posterior probability (BPP), for each model <span class="citation">(Wu et al., 2020)</span>.</p></li>
 <li><p>Use BPP to assess to what extent each model is supported by the
 data, compared to all other models under consideration.</p></li>
+</ul>
+<p>An introduction to the package can be found in the following
+article:</p>
+<ul>
+<li>Pesigan, I. J. A., Cheung, S. F., Wu, H., Chang, F., &amp; Leung, S.
+O. (2026). How plausible is my model? Assessing model plausibility of
+structural equation models using Bayesian posterior probabilities (BPP).
+<em>Behavior Research Methods, 58</em>(3), Article 73. <a href="https://doi.org/10.3758/s13428-025-02921-x" class="uri">https://doi.org/10.3758/s13428-025-02921-x</a></li>
 </ul>
 </div>
 <div id="workflow" class="section level1" number="2">
@@ -418,13 +426,15 @@ Original Model</h2>
 <p>Fit this original model, a serial mediation model, with one direct
 path, from <code>x</code> to <code>y</code>:</p>
 <div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a><span class="fu">library</span>(lavaan)</span>
-<span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a>mod1 <span class="ot">&lt;-</span></span>
-<span id="cb2-3"><a href="#cb2-3" tabindex="-1"></a><span class="st">&quot;</span></span>
-<span id="cb2-4"><a href="#cb2-4" tabindex="-1"></a><span class="st">m1 ~ x</span></span>
-<span id="cb2-5"><a href="#cb2-5" tabindex="-1"></a><span class="st">m2 ~ m1</span></span>
-<span id="cb2-6"><a href="#cb2-6" tabindex="-1"></a><span class="st">y ~ m2 + x</span></span>
-<span id="cb2-7"><a href="#cb2-7" tabindex="-1"></a><span class="st">&quot;</span></span>
-<span id="cb2-8"><a href="#cb2-8" tabindex="-1"></a>fit1 <span class="ot">&lt;-</span> <span class="fu">sem</span>(mod1, dat_serial_4_weak)</span></code></pre></div>
+<span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a><span class="co">#&gt; This is lavaan 0.6-21</span></span>
+<span id="cb2-3"><a href="#cb2-3" tabindex="-1"></a><span class="co">#&gt; lavaan is FREE software! Please report any bugs.</span></span>
+<span id="cb2-4"><a href="#cb2-4" tabindex="-1"></a>mod1 <span class="ot">&lt;-</span></span>
+<span id="cb2-5"><a href="#cb2-5" tabindex="-1"></a><span class="st">&quot;</span></span>
+<span id="cb2-6"><a href="#cb2-6" tabindex="-1"></a><span class="st">m1 ~ x</span></span>
+<span id="cb2-7"><a href="#cb2-7" tabindex="-1"></a><span class="st">m2 ~ m1</span></span>
+<span id="cb2-8"><a href="#cb2-8" tabindex="-1"></a><span class="st">y ~ m2 + x</span></span>
+<span id="cb2-9"><a href="#cb2-9" tabindex="-1"></a><span class="st">&quot;</span></span>
+<span id="cb2-10"><a href="#cb2-10" tabindex="-1"></a>fit1 <span class="ot">&lt;-</span> <span class="fu">sem</span>(mod1, dat_serial_4_weak)</span></code></pre></div>
 <p>This the summary:</p>
 <div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a><span class="fu">summary</span>(fit1,</span>
 <span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a>        <span class="at">fit.measures =</span> <span class="cn">TRUE</span>)</span>
@@ -537,9 +547,9 @@ Results</h2>
 <span id="cb5-25"><a href="#cb5-25" tabindex="-1"></a><span class="co">#&gt; - To show cumulative BPPs, call print() with &#39;cumulative_bpp = TRUE&#39;.</span></span>
 <span id="cb5-26"><a href="#cb5-26" tabindex="-1"></a><span class="co">#&gt; - At least one model has fixed.x = TRUE. The models are not checked for</span></span>
 <span id="cb5-27"><a href="#cb5-27" tabindex="-1"></a><span class="co">#&gt;   equivalence.</span></span>
-<span id="cb5-28"><a href="#cb5-28" tabindex="-1"></a><span class="co">#&gt; - Since Version 0.1.3.5, the default values of exclude_feedback and</span></span>
-<span id="cb5-29"><a href="#cb5-29" tabindex="-1"></a><span class="co">#&gt;   exclude_xy_cov changed to TRUE. Set them to FALSE to reproduce</span></span>
-<span id="cb5-30"><a href="#cb5-30" tabindex="-1"></a><span class="co">#&gt;   results from previous versions.</span></span></code></pre></div>
+<span id="cb5-28"><a href="#cb5-28" tabindex="-1"></a><span class="co">#&gt; - Since Version 0.1.6.3, the default ways to handle factor loadings</span></span>
+<span id="cb5-29"><a href="#cb5-29" tabindex="-1"></a><span class="co">#&gt;   have changed. Check the NEWS by news(package = &#39;modelbpp&#39;) to see how</span></span>
+<span id="cb5-30"><a href="#cb5-30" tabindex="-1"></a><span class="co">#&gt;   to reproduce results from previous versions.</span></span></code></pre></div>
 <p>The total number of models examined, including the original model, is
 7.</p>
 <p>(Note: The total number of models was 9 in previous version. Please
@@ -620,9 +630,9 @@ probability of the other eight model is (1 - .50) / 8 or .0625.</p>
 <span id="cb8-25"><a href="#cb8-25" tabindex="-1"></a><span class="co">#&gt; - To show cumulative BPPs, call print() with &#39;cumulative_bpp = TRUE&#39;.</span></span>
 <span id="cb8-26"><a href="#cb8-26" tabindex="-1"></a><span class="co">#&gt; - At least one model has fixed.x = TRUE. The models are not checked for</span></span>
 <span id="cb8-27"><a href="#cb8-27" tabindex="-1"></a><span class="co">#&gt;   equivalence.</span></span>
-<span id="cb8-28"><a href="#cb8-28" tabindex="-1"></a><span class="co">#&gt; - Since Version 0.1.3.5, the default values of exclude_feedback and</span></span>
-<span id="cb8-29"><a href="#cb8-29" tabindex="-1"></a><span class="co">#&gt;   exclude_xy_cov changed to TRUE. Set them to FALSE to reproduce</span></span>
-<span id="cb8-30"><a href="#cb8-30" tabindex="-1"></a><span class="co">#&gt;   results from previous versions.</span></span></code></pre></div>
+<span id="cb8-28"><a href="#cb8-28" tabindex="-1"></a><span class="co">#&gt; - Since Version 0.1.6.3, the default ways to handle factor loadings</span></span>
+<span id="cb8-29"><a href="#cb8-29" tabindex="-1"></a><span class="co">#&gt;   have changed. Check the NEWS by news(package = &#39;modelbpp&#39;) to see how</span></span>
+<span id="cb8-30"><a href="#cb8-30" tabindex="-1"></a><span class="co">#&gt;   to reproduce results from previous versions.</span></span></code></pre></div>
 <p>If the prior of the target is set to .50, then, taking into account
 both the prior probabilities and the data, the target model is strongly
 supported by the data.</p>
@@ -685,9 +695,9 @@ only the top 20 models on BPP will be printed:</p>
 <span id="cb11-32"><a href="#cb11-32" tabindex="-1"></a><span class="co">#&gt; - To show cumulative BPPs, call print() with &#39;cumulative_bpp = TRUE&#39;.</span></span>
 <span id="cb11-33"><a href="#cb11-33" tabindex="-1"></a><span class="co">#&gt; - At least one model has fixed.x = TRUE. The models are not checked for</span></span>
 <span id="cb11-34"><a href="#cb11-34" tabindex="-1"></a><span class="co">#&gt;   equivalence.</span></span>
-<span id="cb11-35"><a href="#cb11-35" tabindex="-1"></a><span class="co">#&gt; - Since Version 0.1.3.5, the default values of exclude_feedback and</span></span>
-<span id="cb11-36"><a href="#cb11-36" tabindex="-1"></a><span class="co">#&gt;   exclude_xy_cov changed to TRUE. Set them to FALSE to reproduce</span></span>
-<span id="cb11-37"><a href="#cb11-37" tabindex="-1"></a><span class="co">#&gt;   results from previous versions.</span></span></code></pre></div>
+<span id="cb11-35"><a href="#cb11-35" tabindex="-1"></a><span class="co">#&gt; - Since Version 0.1.6.3, the default ways to handle factor loadings</span></span>
+<span id="cb11-36"><a href="#cb11-36" tabindex="-1"></a><span class="co">#&gt;   have changed. Check the NEWS by news(package = &#39;modelbpp&#39;) to see how</span></span>
+<span id="cb11-37"><a href="#cb11-37" tabindex="-1"></a><span class="co">#&gt;   to reproduce results from previous versions.</span></span></code></pre></div>
 <p>The number of models examined, including the original model, is
 14.</p>
 <p>This is the output of <code>model_graph()</code>:</p>
@@ -742,9 +752,9 @@ exists and should not be dropped, we can exclude it when calling
 <span id="cb14-24"><a href="#cb14-24" tabindex="-1"></a><span class="co">#&gt; - To show cumulative BPPs, call print() with &#39;cumulative_bpp = TRUE&#39;.</span></span>
 <span id="cb14-25"><a href="#cb14-25" tabindex="-1"></a><span class="co">#&gt; - At least one model has fixed.x = TRUE. The models are not checked for</span></span>
 <span id="cb14-26"><a href="#cb14-26" tabindex="-1"></a><span class="co">#&gt;   equivalence.</span></span>
-<span id="cb14-27"><a href="#cb14-27" tabindex="-1"></a><span class="co">#&gt; - Since Version 0.1.3.5, the default values of exclude_feedback and</span></span>
-<span id="cb14-28"><a href="#cb14-28" tabindex="-1"></a><span class="co">#&gt;   exclude_xy_cov changed to TRUE. Set them to FALSE to reproduce</span></span>
-<span id="cb14-29"><a href="#cb14-29" tabindex="-1"></a><span class="co">#&gt;   results from previous versions.</span></span></code></pre></div>
+<span id="cb14-27"><a href="#cb14-27" tabindex="-1"></a><span class="co">#&gt; - Since Version 0.1.6.3, the default ways to handle factor loadings</span></span>
+<span id="cb14-28"><a href="#cb14-28" tabindex="-1"></a><span class="co">#&gt;   have changed. Check the NEWS by news(package = &#39;modelbpp&#39;) to see how</span></span>
+<span id="cb14-29"><a href="#cb14-29" tabindex="-1"></a><span class="co">#&gt;   to reproduce results from previous versions.</span></span></code></pre></div>
 <p>The number of models reduced to 14.</p>
 <p>This is the plot:</p>
 <div class="sourceCode" id="cb15"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" tabindex="-1"></a>out1_no_m1_x <span class="ot">&lt;-</span> <span class="fu">model_graph</span>(out1_no_m1_x)</span>
@@ -802,9 +812,9 @@ the original <code>lavaan</code> output as the input:</p>
 <span id="cb17-25"><a href="#cb17-25" tabindex="-1"></a><span class="co">#&gt; - To show cumulative BPPs, call print() with &#39;cumulative_bpp = TRUE&#39;.</span></span>
 <span id="cb17-26"><a href="#cb17-26" tabindex="-1"></a><span class="co">#&gt; - At least one model has fixed.x = TRUE. The models are not checked for</span></span>
 <span id="cb17-27"><a href="#cb17-27" tabindex="-1"></a><span class="co">#&gt;   equivalence.</span></span>
-<span id="cb17-28"><a href="#cb17-28" tabindex="-1"></a><span class="co">#&gt; - Since Version 0.1.3.5, the default values of exclude_feedback and</span></span>
-<span id="cb17-29"><a href="#cb17-29" tabindex="-1"></a><span class="co">#&gt;   exclude_xy_cov changed to TRUE. Set them to FALSE to reproduce</span></span>
-<span id="cb17-30"><a href="#cb17-30" tabindex="-1"></a><span class="co">#&gt;   results from previous versions.</span></span></code></pre></div>
+<span id="cb17-28"><a href="#cb17-28" tabindex="-1"></a><span class="co">#&gt; - Since Version 0.1.6.3, the default ways to handle factor loadings</span></span>
+<span id="cb17-29"><a href="#cb17-29" tabindex="-1"></a><span class="co">#&gt;   have changed. Check the NEWS by news(package = &#39;modelbpp&#39;) to see how</span></span>
+<span id="cb17-30"><a href="#cb17-30" tabindex="-1"></a><span class="co">#&gt;   to reproduce results from previous versions.</span></span></code></pre></div>
 </div>
 <div id="many-neighboring-models" class="section level2" number="4.5">
 <h2><span class="header-section-number">4.5</span> Many Neighboring

@@ -20,6 +20,7 @@ model_set(
   exclude_error_cov = TRUE,
   exclude_feedback = TRUE,
   exclude_xy_cov = TRUE,
+  exclude_x_changed_to_y = TRUE,
   cross_add = c("pure_x", "pure_y"),
   cross_sets = NULL,
   df_change_add = 1,
@@ -48,11 +49,13 @@ gen_models(
   exclude_error_cov = TRUE,
   exclude_feedback = TRUE,
   exclude_xy_cov = TRUE,
+  exclude_x_changed_to_y = TRUE,
   cross_add = c("pure_x", "pure_y"),
   cross_sets = NULL,
   df_change_add = 1,
   df_change_drop = 1,
   remove_duplicated = TRUE,
+  drop_equivalent_models = TRUE,
   progress = TRUE,
   output = c("partables", "model_set")
 )
@@ -177,6 +180,12 @@ these covariances rarely are
 interpretable. To reproduce results
 based on previous version, set this
 argument to \code{FALSE}.}
+
+\item{exclude_x_changed_to_y}{Exclude
+changes that make a "pure" \code{x}
+variable to a \code{y} variable. For example,
+adding the path \code{x2 ~ x1} to
+the model \code{y ~ x1 + x2}.}
 
 \item{cross_add}{A character vector
 of whether and how cross-loadings
