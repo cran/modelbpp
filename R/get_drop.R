@@ -126,7 +126,7 @@ get_drop <- function(sem_out,
         stop("sem_out is not a lavaan-class object.")
       }
     loadings_to_exclude <- match.arg(loadings_to_exclude)
-    pt <- lavaan::parameterTable(sem_out)
+    pt <- parameterTable_simple(sem_out)
     # ==== Remove all user-defined parameters unless constrained ====
     pt <- pt_remove_user_defined(pt, remove_constrained = FALSE)
     # ==== Exclude all parameters already constrained to be equal ====
@@ -176,6 +176,7 @@ get_drop <- function(sem_out,
                             }
                   )
         sets_to_gen <- unlist(sets_to_gen, recursive = FALSE)
+        # Can use "fitMeasures" because sem_out is always a fitted object
         df0 <- lavaan::fitMeasures(sem_out, "df")
         if (progress) {
             cat("\nGenerate", length(sets_to_gen), "more restrictive model(s):\n")
@@ -231,25 +232,39 @@ gen_pt_drop <- function(x, pt, to, source_df = NA, sem_out) {
     p_to_drop_out <- lapply(x, function(x) {
         c(lhs = pt[x, "lhs"], op = pt[x, "op"], rhs = pt[x, "rhs"])
       })
-    suppressWarnings(sem_out_update <- lavaan::update(sem_out,
-                                     pt,
-                                     do.fit = TRUE,
-                                     optim.force.converged = TRUE,
-                                     warn = FALSE,
-                                     se = "none",
-                                     baseline = FALSE,
-                                     check.start = FALSE,
-                                     check.post = FALSE,
-                                     check.vcov = FALSE,
-                                     control = list(max.iter = 1)))
-    pt_update <- lavaan::parameterTable(sem_out_update)
+    do_fit <- getOption("modelbpp.do_fit", FALSE)
+    suppressWarnings(sem_out_update <- auto_ram(
+      FUN = lavaan::update,
+      object = sem_out,
+      model = pt,
+      do.fit = do_fit,
+      optim.force.converged = TRUE,
+      warn = FALSE,
+      se = "none",
+      baseline = FALSE,
+      check.start = FALSE,
+      check.post = FALSE,
+      check.vcov = FALSE,
+      h1 = FALSE,
+      implied = FALSE,
+      check.sigma.pd = FALSE,
+      check.gradient = FALSE,
+      samplestats = do_fit,
+      control = list(max.iter = 1))
+    )
+    pt_update <- parameterTable_simple(sem_out_update)
+    if (do_fit) {
+      pt_update_df <- unname(lavaan::fitMeasures(sem_out_update,
+                                                 fit.measures = "df"))
+    } else {
+      pt_update_df <- lavaan_df(sem_out_update)
+    }
     attr(pt_update, "parameters_dropped") <- p_to_drop
     attr(pt_update, "parameters_dropped_list") <- p_to_drop_out
     attr(pt_update, "ids_dropped") <- x
     attr(pt_update, "to") <- to
     attr(pt_update, "df_expected") <- unname(source_df) +
                                length(x)
-    attr(pt_update, "df_actual") <- unname(lavaan::fitMeasures(sem_out_update,
-                                                        fit.measures = "df"))
+    attr(pt_update, "df_actual") <- pt_update_df
     pt_update
   }

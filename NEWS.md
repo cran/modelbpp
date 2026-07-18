@@ -1,3 +1,45 @@
+# modelbpp 0.4.0
+
+## Miscellaneous
+
+- In `get_add()` and `get_drop()`, the
+  representation will switch to `RAM`
+  if `LISREL` fails.
+  (0.3.0.1)
+
+- If the option `modelbpp.do_fit` is set
+  to `FALSE` or not set, a parameter table will not
+  be fitted to get the model *df*, leading
+  to faster search. If this options is
+  set to `TRUE`, then the
+  parameter table will be fitted as
+  in 0.3.0.2 or older version.
+  (0.3.0.2, 0.3.0.3)
+
+- Disabled more options to make the search
+  faster.
+  (0.3.0.3)
+
+- Depends on R 4.1.0 or later now.
+  (0.3.0.2)
+
+- Slightly improved the speed by using
+  an internal variant of `lavaan::parameterTable()`.
+  (0.3.0.4)
+
+- Added the option to use an internal
+  function instead of `lavaan::update()`.
+  Disabled by default. Enable it by
+  setting the option `modelbpp.use_pt_add_only`
+  to `TRUE`. Only applicable for models
+  without constraints.
+  (0.3.0.4, 0.3.0.5)
+
+- In `fit_many()`, removed the printing of
+  expected CPU time because the estimate
+  is not reliable.
+  (0.3.0.6)
+
 # modelbpp 0.3.0
 
 ## Miscellaneous
